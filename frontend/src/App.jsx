@@ -13,7 +13,9 @@ import Evaluator from './pages/Evaluator'
 import PromptOptimizer from './pages/PromptOptimizer'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ErrorBoundary from './components/ErrorBoundary'
 import NotFound from './pages/NotFound'
+
 
 /**
  * AppRouter component that conditionally renders Welcome page or full app
@@ -61,15 +63,19 @@ function AppRouter() {
 }
 
 function App() {
+
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AppRouter />
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AppRouter />
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
+
 
 export default App
