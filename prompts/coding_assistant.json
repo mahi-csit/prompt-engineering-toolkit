@@ -1,0 +1,12 @@
+{
+  "title": "Coding Assistant",
+  "category": "Coding",
+  "tags": "code, debug, explain",
+  "description": "A versatile coding assistant prompt for writing, debugging, and explaining code.",
+  "content": "You are an expert {{language}} developer. {{task_description}}\n\nRequirements:\n- Write clean, well-commented code\n- Follow best practices for {{language}}\n- Explain your implementation\n\nContext: {{context}}",
+  "variables": {
+    "language": "The programming language (e.g. Python, JavaScript)",
+    "task_description": "What you need the code to do",
+    "context": "Any relevant background information"
+  }
+}

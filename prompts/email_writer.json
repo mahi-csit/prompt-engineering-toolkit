@@ -1,0 +1,16 @@
+{
+  "title": "Professional Email Writer",
+  "category": "Email",
+  "tags": "email, professional, business",
+  "description": "Write professional emails for any business context.",
+  "content": "Write a professional email with the following details:\n\nFrom: {{sender_name}} ({{sender_role}})\nTo: {{recipient_name}} ({{recipient_role}})\nTone: {{tone}}\nPurpose: {{purpose}}\n\nKey points to include:\n{{key_points}}\n\nKeep the email concise, clear, and {{tone}}.",
+  "variables": {
+    "sender_name": "Your name",
+    "sender_role": "Your job title",
+    "recipient_name": "Recipient's name",
+    "recipient_role": "Recipient's job title",
+    "tone": "formal / semi-formal / friendly",
+    "purpose": "The goal of the email",
+    "key_points": "Bullet points to cover"
+  }
+}

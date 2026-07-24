@@ -1,0 +1,15 @@
+{
+  "title": "Marketing Copy Generator",
+  "category": "Marketing",
+  "tags": "marketing, copywriting, ads",
+  "description": "Generate compelling marketing copy for products or services.",
+  "content": "You are a world-class copywriter. Write compelling {{copy_type}} for:\n\nProduct/Service: {{product_name}}\nTarget Audience: {{audience}}\nKey Benefits: {{benefits}}\nTone: {{tone}}\nCall to Action: {{cta}}\n\nMake it persuasive, engaging, and tailored to {{audience}}.",
+  "variables": {
+    "copy_type": "ad copy / landing page / social post / email",
+    "product_name": "Name of the product or service",
+    "audience": "Target demographic",
+    "benefits": "Key features and benefits",
+    "tone": "Energetic / professional / playful",
+    "cta": "Desired user action"
+  }
+}

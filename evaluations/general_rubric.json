@@ -1,0 +1,49 @@
+{
+  "name": "General Quality Rubric",
+  "version": "1.0",
+  "description": "Standard rubric for evaluating prompt quality across all categories.",
+  "criteria": [
+    {
+      "name": "clarity",
+      "description": "Is the prompt clear and easy to understand?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "specificity",
+      "description": "Does the prompt provide enough specific detail to get a useful response?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "context",
+      "description": "Does the prompt include relevant background context?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "grammar",
+      "description": "Is the prompt grammatically correct and well-structured?",
+      "max_score": 10,
+      "weight": 0.5
+    },
+    {
+      "name": "completeness",
+      "description": "Does the prompt cover all necessary aspects of the task?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "creativity",
+      "description": "Does the prompt encourage creative and useful output?",
+      "max_score": 10,
+      "weight": 0.5
+    }
+  ],
+  "scoring": {
+    "excellent": "85-100",
+    "good": "70-84",
+    "average": "50-69",
+    "poor": "below 50"
+  }
+}

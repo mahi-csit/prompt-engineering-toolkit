@@ -1,0 +1,37 @@
+{
+  "name": "Coding Task Rubric",
+  "version": "1.0",
+  "description": "Rubric specifically for evaluating coding and technical prompts.",
+  "criteria": [
+    {
+      "name": "technical_accuracy",
+      "description": "Does the prompt use correct technical terminology?",
+      "max_score": 10,
+      "weight": 1.5
+    },
+    {
+      "name": "specificity",
+      "description": "Are language, framework, and constraints clearly specified?",
+      "max_score": 10,
+      "weight": 1.5
+    },
+    {
+      "name": "context",
+      "description": "Is enough code/system context provided?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "completeness",
+      "description": "Are edge cases, error handling, and requirements covered?",
+      "max_score": 10,
+      "weight": 1.0
+    },
+    {
+      "name": "clarity",
+      "description": "Is the expected output format clear?",
+      "max_score": 10,
+      "weight": 1.0
+    }
+  ]
+}
