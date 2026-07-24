@@ -11,11 +11,18 @@ from .config import settings
 _client: motor.motor_asyncio.AsyncIOMotorClient | None = None
 
 
+import certifi
+
+
 def get_client() -> motor.motor_asyncio.AsyncIOMotorClient:
     global _client
     if _client is None:
-        _client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL)
+        kwargs = {}
+        if "mongodb+srv://" in settings.MONGODB_URL:
+            kwargs["tlsCAFile"] = certifi.where()
+        _client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL, **kwargs)
     return _client
+
 
 
 async def init_db():
