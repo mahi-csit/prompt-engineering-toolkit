@@ -23,8 +23,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => { loadUser() }, [loadUser])
 
-  const login = async (email, password) => {
-    const data = await authAPI.login({ email, password })
+  const login = async (usernameOrEmail, password) => {
+    const data = await authAPI.login({ username_or_email: usernameOrEmail, email: usernameOrEmail, password })
     // Backend returns { access_token, token_type, user: { id, username, email, ... } }
     localStorage.setItem('auth_token', data.access_token)
     setUser(data.user)

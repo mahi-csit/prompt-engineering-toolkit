@@ -63,16 +63,15 @@ vi.mock('../pages/NotFound', () => ({
   default: () => <div>Not Found</div>,
 }))
 
-describe('App Navigation Flow', () => {
-  let useAuthMock
+import { useAuth } from '../context/AuthContext'
 
+describe('App Navigation Flow', () => {
   beforeEach(() => {
-    const { useAuth } = require('../context/AuthContext')
-    useAuthMock = useAuth
+    vi.clearAllMocks()
   })
 
   it('should show loading spinner while checking auth', () => {
-    useAuthMock.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: null,
       loading: true,
       login: vi.fn(),
@@ -88,7 +87,7 @@ describe('App Navigation Flow', () => {
   })
 
   it('should show Welcome page when user is not authenticated', () => {
-    useAuthMock.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: null,
       loading: false,
       login: vi.fn(),
@@ -102,7 +101,7 @@ describe('App Navigation Flow', () => {
   })
 
   it('should show full app when user is authenticated', () => {
-    useAuthMock.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: { id: '1', email: 'test@example.com', username: 'testuser' },
       loading: false,
       login: vi.fn(),

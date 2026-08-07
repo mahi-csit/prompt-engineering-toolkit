@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Layout from '../../components/Layout'
+import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 // Mock the context hooks
 vi.mock('../../context/AuthContext', () => ({
@@ -19,15 +21,12 @@ vi.mock('../../components/Sidebar', () => ({
 
 describe('Layout Component', () => {
   it('should render sidebar and navigation when user is authenticated', () => {
-    const { useAuth } = require('../../context/AuthContext')
-    const { useTheme } = require('../../context/ThemeContext')
-    
-    useAuth.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: { id: '1', email: 'test@example.com', username: 'testuser' },
       logout: vi.fn(),
     })
     
-    useTheme.mockReturnValue({
+    vi.mocked(useTheme).mockReturnValue({
       dark: false,
       toggle: vi.fn(),
     })
@@ -56,15 +55,12 @@ describe('Layout Component', () => {
   })
 
   it('should NOT render sidebar and navigation when user is not authenticated', () => {
-    const { useAuth } = require('../../context/AuthContext')
-    const { useTheme } = require('../../context/ThemeContext')
-    
-    useAuth.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: null,
       logout: vi.fn(),
     })
     
-    useTheme.mockReturnValue({
+    vi.mocked(useTheme).mockReturnValue({
       dark: false,
       toggle: vi.fn(),
     })
@@ -91,17 +87,14 @@ describe('Layout Component', () => {
   })
 
   it('should show dark mode toggle when user is authenticated', () => {
-    const { useAuth } = require('../../context/AuthContext')
-    const { useTheme } = require('../../context/ThemeContext')
-    
     const toggleMock = vi.fn()
     
-    useAuth.mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: { id: '1', email: 'test@example.com', username: 'testuser' },
       logout: vi.fn(),
     })
     
-    useTheme.mockReturnValue({
+    vi.mocked(useTheme).mockReturnValue({
       dark: false,
       toggle: toggleMock,
     })
