@@ -5,7 +5,11 @@ Call init_db() once at application startup.
 from typing import Any, Optional
 import certifi
 import motor.motor_asyncio
-import mongomock_motor
+try:
+    import mongomock_motor
+except ImportError:
+    mongomock_motor = None
+
 from beanie import init_beanie
 from .config import settings
 from .logging import get_logger
@@ -22,6 +26,8 @@ def get_client() -> Any:
     if _client is None:
         if not settings.MONGODB_URL or settings.MONGODB_URL.strip() == "":
             logger.info("No MONGODB_URL provided. Using in-memory MongoMock storage.")
+            if mongomock_motor is None:
+                raise RuntimeError("mongomock-motor is required for in-memory fallback but is not installed.")
             _client = mongomock_motor.AsyncMongoMockClient()
             _is_mock = True
         else:
@@ -60,6 +66,8 @@ async def init_db() -> None:
             "Tip: Ensure your current IP address is whitelisted in MongoDB Atlas Network Access (0.0.0.0/0).",
             exc,
         )
+        if mongomock_motor is None:
+            raise RuntimeError(f"Could not connect to MongoDB Atlas and mongomock-motor is not installed: {exc}")
         _client = mongomock_motor.AsyncMongoMockClient()
         _is_mock = True
         db = _client[settings.MONGODB_DB_NAME]
@@ -77,5 +85,3 @@ async def close_db() -> None:
             _client.close()
         _client = None
         _is_mock = False
-
-
