@@ -136,7 +136,7 @@ describe('ModelComparison', () => {
 
     render(<ModelComparison responses={responses} />)
 
-    expect(screen.getByText('End_turn')).toBeInTheDocument()
+    expect(screen.getByText('end_turn')).toBeInTheDocument()
   })
 
   it('should handle mixed success and failure', () => {
@@ -154,18 +154,18 @@ describe('ModelComparison', () => {
       {
         provider: 'openai',
         model: 'gpt-4-turbo-preview',
-        content: '',
+        content: null,
+        error: 'Error',
         latency_ms: 200,
-        token_count: null,
-        finish_reason: null,
-        success: false,
-        error: 'Error'
+        token_count: 0,
+        finish_reason: 'error',
+        success: false
       }
     ]
 
     render(<ModelComparison responses={responses} />)
 
-    expect(screen.getByText('Success')).toBeInTheDocument()
+    expect(screen.getAllByText('Success').length).toBeGreaterThan(0)
     expect(screen.getByText('Failed')).toBeInTheDocument()
   })
 })

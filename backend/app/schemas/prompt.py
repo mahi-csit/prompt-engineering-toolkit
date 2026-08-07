@@ -20,7 +20,9 @@ class PromptCreate(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
     variables: Optional[Dict[str, Any]] = None
+    variations: Optional[List[Dict[str, Any]]] = None
     is_favorite: bool = False
+    parent_id: Optional[str] = None
 
     @field_validator("title")
     @classmethod
@@ -47,18 +49,22 @@ class PromptUpdate(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
     variables: Optional[Dict[str, Any]] = None
+    variations: Optional[List[Dict[str, Any]]] = None
     is_favorite: Optional[bool] = None
+    parent_id: Optional[str] = None
 
 
 class PromptResponse(BaseModel):
     id: str
     user_id: Optional[str] = None
+    parent_id: Optional[str] = None
     title: str
     category: Optional[str] = None
     content: str
     description: Optional[str] = None
     tags: Optional[str] = None
     variables: Optional[Dict[str, Any]] = None
+    variations: Optional[List[Dict[str, Any]]] = None
     is_favorite: bool
     version_number: int
     created_at: datetime
@@ -108,3 +114,15 @@ class ExportPromptResponse(BaseModel):
     prompt: PromptResponse
     versions: List[PromptVersionResponse]
     exported_at: datetime
+
+
+class GeneratePromptRequest(BaseModel):
+    topic: str
+    category: Optional[str] = None
+
+
+class GeneratePromptResponse(BaseModel):
+    title: str
+    category: str
+    description: str
+    content: str

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { evaluationsAPI } from '../api/evaluations'
+import { promptsAPI } from '../api/prompts'
 
 const PROVIDERS = [
   { value: 'openai', label: 'OpenAI' },
@@ -23,6 +24,20 @@ function PromptOptimizer() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [libraryPrompts, setLibraryPrompts] = useState([])
+
+  useEffect(() => {
+    fetchLibraryPrompts()
+  }, [])
+
+  const fetchLibraryPrompts = async () => {
+    try {
+      const res = await promptsAPI.listPrompts({ page_size: 100 })
+      setLibraryPrompts(res.items || [])
+    } catch (err) {
+      console.error('Failed to fetch library prompts:', err)
+    }
+  }
 
   const handleProviderChange = (e) => {
     const p = e.target.value
@@ -80,6 +95,28 @@ function PromptOptimizer() {
         {/* Input Panel */}
         <div className="space-y-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Original Prompt</h2>
+
+          {libraryPrompts.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Select Prompt from Library
+              </label>
+              <select
+                onChange={(e) => {
+                  const selected = libraryPrompts.find(p => String(p.id) === String(e.target.value))
+                  if (selected) setPrompt(selected.content)
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm mb-2"
+              >
+                <option value="">Choose a prompt from library...</option>
+                {libraryPrompts.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.title || p.name || 'Untitled Prompt'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

@@ -23,7 +23,7 @@ async def signup(data: UserCreate):
 @router.post("/login", response_model=TokenResponse)
 async def login(data: UserLogin):
     """Authenticate user and return an access token."""
-    user = await AuthService.authenticate_user(data.email, data.password)
+    user = await AuthService.authenticate_user(data.username_or_email, data.password)
     token = AuthService.generate_token(user)
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 

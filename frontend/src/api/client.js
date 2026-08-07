@@ -1,7 +1,14 @@
 import axios from 'axios'
 
-// Get API URL from environment variable, fallback to /api for same-origin
-const apiURL = import.meta.env.VITE_API_URL || '/api'
+// Get API URL from environment variable, normalize to prevent double /api paths
+let rawURL = (import.meta.env.VITE_API_URL || '').trim()
+if (rawURL.endsWith('/')) {
+  rawURL = rawURL.slice(0, -1)
+}
+if (rawURL.endsWith('/api')) {
+  rawURL = rawURL.slice(0, -4)
+}
+const apiURL = rawURL
 
 // Create axios instance with base configuration
 const apiClient = axios.create({

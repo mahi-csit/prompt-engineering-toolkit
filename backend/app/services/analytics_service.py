@@ -10,11 +10,10 @@ from ..models.user import User
 async def _run_aggregate(document_class, pipeline: list) -> list:
     """
     Helper that works with both Beanie 1.x and 2.x aggregate API.
-    Beanie 2.x aggregate() returns an AsyncIOMotorLatentCommandCursor
-    which must be iterated, not awaited directly.
     """
     results = []
-    cursor = document_class.get_pymongo_collection().aggregate(pipeline)
+    get_coll = getattr(document_class, "get_motor_collection", None) or getattr(document_class, "get_pymongo_collection", None)
+    cursor = get_coll().aggregate(pipeline)
     async for doc in cursor:
         results.append(doc)
     return results

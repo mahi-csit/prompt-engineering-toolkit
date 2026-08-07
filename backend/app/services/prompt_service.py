@@ -23,14 +23,37 @@ class PromptService:
 
     @staticmethod
     async def create_prompt(data: PromptCreate, user_id: Optional[str] = None) -> Prompt:
+        if data.parent_id:
+            try:
+                parent = await Prompt.get(PydanticObjectId(data.parent_id))
+                if parent:
+                    variation_obj = {
+                        "id": str(PydanticObjectId()),
+                        "title": data.title,
+                        "content": data.content,
+                        "description": data.description or "",
+                        "category": data.category or "Playground Variations",
+                        "created_at": datetime.utcnow().isoformat(),
+                    }
+                    if parent.variations is None:
+                        parent.variations = []
+                    parent.variations.append(variation_obj)
+                    parent.updated_at = datetime.utcnow()
+                    await parent.save()
+                    return parent
+            except Exception as e:
+                logger.warning("Could not attach variation to parent prompt: %s", e)
+
         prompt = Prompt(
             user_id=PydanticObjectId(user_id) if user_id else None,
+            parent_id=PydanticObjectId(data.parent_id) if data.parent_id else None,
             title=data.title,
             category=data.category or "General",
             content=data.content,
             description=data.description,
             tags=data.tags,
             variables=data.variables or {},
+            variations=getattr(data, 'variations', None) or [],
             is_favorite=data.is_favorite,
             version_number=1,
         )
@@ -67,14 +90,25 @@ class PromptService:
         page: int = 1,
         page_size: int = 20,
     ) -> Tuple[List[Prompt], int]:
-        # Build filter dict for Motor
-        filter_dict: dict = {}
-        if query:
-            filter_dict["$or"] = [
-                {"title": {"$regex": query, "$options": "i"}},
-                {"description": {"$regex": query, "$options": "i"}},
-                {"content": {"$regex": query, "$options": "i"}},
+        root_clause = {
+            "$or": [
+                {"parent_id": None},
+                {"parent_id": {"$exists": False}},
             ]
+        }
+        
+        filter_dict: dict = root_clause
+        
+        if query:
+            search_clause = {
+                "$or": [
+                    {"title": {"$regex": query, "$options": "i"}},
+                    {"description": {"$regex": query, "$options": "i"}},
+                    {"content": {"$regex": query, "$options": "i"}},
+                ]
+            }
+            filter_dict = {"$and": [root_clause, search_clause]}
+
         if category:
             filter_dict["category"] = category
         if tags:
@@ -225,3 +259,78 @@ class PromptService:
             variables=data.get("variables"),
         )
         return await PromptService.create_prompt(create_data, user_id=user_id)
+
+    # ── AI PROMPT GENERATOR ───────────────────────────────────────────────
+
+    @staticmethod
+    async def generate_prompt_template(topic: str, category: Optional[str] = None) -> dict:
+        topic_clean = topic.strip()
+        cat = category or "General"
+        topic_lower = topic_clean.lower()
+
+        if any(w in topic_lower for w in ["code", "python", "javascript", "react", "bug", "fix", "sql", "api", "review"]):
+            title = f"{topic_clean.title()} Assistant"
+            cat = category or "Coding"
+            description = f"Structured AI prompt template for {topic_clean} development tasks."
+            content = (
+                f"You are an expert software engineer specializing in {{language}}.\n\n"
+                f"Task: {{task_description}}\n\n"
+                f"Code Context:\n```{{language}}\n{{code_snippet}}\n```\n\n"
+                f"Instructions:\n"
+                f"1. Review the code for bugs, efficiency, security, and readability.\n"
+                f"2. Provide refactored code adhering to {{style_guide}} standards.\n"
+                f"3. Explain all key changes clearly."
+            )
+        elif any(w in topic_lower for w in ["email", "mail", "outreach", "welcome", "newsletter"]):
+            title = f"{topic_clean.title()} Template"
+            cat = category or "Email"
+            description = f"Professional template for generating {topic_clean} communications."
+            content = (
+                f"You are a communications specialist writing on behalf of {{company_name}}.\n\n"
+                f"Recipient: {{recipient_name}} ({{recipient_role}})\n"
+                f"Goal: {{email_purpose}}\n\n"
+                f"Key Points:\n- {{key_point_1}}\n- {{key_point_2}}\n\n"
+                f"Tone: {{tone_style}}\n\n"
+                f"Write a clear, compelling email with a punchy subject line and call-to-action."
+            )
+        elif any(w in topic_lower for w in ["support", "customer", "refund", "ticket", "service"]):
+            title = f"{topic_clean.title()} Response"
+            cat = category or "Business"
+            description = f"Customer service prompt template for {topic_clean}."
+            content = (
+                f"You are a helpful customer support representative for {{company_name}}.\n\n"
+                f"Customer Name: {{customer_name}}\n"
+                f"Issue / Request: {{customer_issue}}\n"
+                f"Policy Guidelines: {{policy_summary}}\n\n"
+                f"Craft a friendly, empathetic, and effective response that solves the customer's problem."
+            )
+        elif any(w in topic_lower for w in ["marketing", "ad", "social", "post", "blog", "copy"]):
+            title = f"{topic_clean.title()} Generator"
+            cat = category or "Marketing"
+            description = f"High-converting marketing copy template for {topic_clean}."
+            content = (
+                f"You are a master copywriter crafting marketing material for {{product_name}}.\n\n"
+                f"Target Audience: {{target_audience}}\n"
+                f"Key Benefit: {{main_benefit}}\n"
+                f"Call to Action: {{cta_objective}}\n\n"
+                f"Write engaging copy for {{platform_name}} with a {{tone_style}} tone that drives action."
+            )
+        else:
+            title = f"{topic_clean.title()} Prompt"
+            description = f"Custom prompt template for {topic_clean}."
+            content = (
+                f"You are an expert AI assistant specialized in {{domain_topic}}.\n\n"
+                f"Context & Background:\n{{background_context}}\n\n"
+                f"Task:\n{{user_task}}\n\n"
+                f"Requirements:\n"
+                f"- Format: {{output_format}}\n"
+                f"- Tone: {{tone_style}}\n"
+                f"- Ensure high accuracy and actionable takeaways."
+            )
+
+        return {
+            "title": title,
+            "category": cat,
+            "description": description,
+            "content": content,
+        }

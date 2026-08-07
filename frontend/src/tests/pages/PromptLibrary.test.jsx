@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import PromptLibrary from '../../pages/PromptLibrary'
-import * as promptsAPI from '../../api/prompts'
+import { promptsAPI } from '../../api/prompts'
 
 // Mock the prompts API
 vi.mock('../../api/prompts')

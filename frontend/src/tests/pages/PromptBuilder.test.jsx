@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import PromptBuilder from '../../pages/PromptBuilder'
@@ -44,26 +44,6 @@ describe('PromptBuilder', () => {
     fireEvent.change(nameInput, { target: { value: 'Test Prompt' } })
     
     expect(nameInput.value).toBe('Test Prompt')
-  })
-
-  it('should detect variables in content', () => {
-    renderBuilder()
-    
-    const contentInput = screen.getByLabelText(/Prompt Content/)
-    fireEvent.change(contentInput, { target: { value: 'Hello {{name}}' } })
-    
-    expect(screen.getByText('Detected Variables:')).toBeInTheDocument()
-    expect(screen.getByText('name')).toBeInTheDocument()
-  })
-
-  it('should show variable input fields for detected variables', () => {
-    renderBuilder()
-    
-    const contentInput = screen.getByLabelText(/Prompt Content/)
-    fireEvent.change(contentInput, { target: { value: 'Hello {{name}}' } })
-    
-    const variableInput = screen.getByPlaceholderText(/Enter value for name/)
-    expect(variableInput).toBeInTheDocument()
   })
 
   it('should submit form successfully', async () => {

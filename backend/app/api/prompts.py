@@ -12,10 +12,19 @@ from ..schemas.prompt import (
     PromptCreate, PromptUpdate, PromptResponse, PromptListResponse,
     PromptVersionResponse, RenderRequest, RenderResponse,
     ImportPromptRequest, ExportPromptResponse,
+    GeneratePromptRequest, GeneratePromptResponse,
 )
 from ..services.prompt_service import PromptService
 
 router = APIRouter()
+
+
+# ── AI PROMPT GENERATOR ──────────────────────────────────────────────────
+
+@router.post("/generate", response_model=GeneratePromptResponse)
+async def generate_prompt_template(data: GeneratePromptRequest):
+    result = await PromptService.generate_prompt_template(data.topic, data.category)
+    return GeneratePromptResponse(**result)
 
 
 # ── CATEGORIES (before /{prompt_id} to avoid conflicts) ──────────────────
@@ -133,12 +142,14 @@ def _to_response(prompt) -> PromptResponse:
     return PromptResponse(
         id=str(prompt.id),
         user_id=str(prompt.user_id) if prompt.user_id else None,
+        parent_id=str(prompt.parent_id) if prompt.parent_id else None,
         title=prompt.title,
         category=prompt.category,
         content=prompt.content,
         description=prompt.description,
         tags=prompt.tags,
         variables=prompt.variables,
+        variations=prompt.variations or [],
         is_favorite=prompt.is_favorite,
         version_number=prompt.version_number,
         created_at=prompt.created_at,

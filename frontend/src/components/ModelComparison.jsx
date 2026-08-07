@@ -37,8 +37,8 @@ function ModelComparison({ responses }) {
           )
         }
 
-        const isSuccess = response.success && response.response
-        const displayText = response.response || response.error || 'No response or error'
+        const isSuccess = Boolean(response.success && (response.response || response.content))
+        const displayText = response.response || response.content || response.error || 'No response or error'
 
         return (
           <div

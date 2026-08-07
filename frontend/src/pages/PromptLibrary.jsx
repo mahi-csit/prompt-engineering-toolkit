@@ -137,6 +137,17 @@ function PromptLibrary() {
     input.click()
   }
 
+  const [expandedPromptIds, setExpandedPromptIds] = useState(new Set())
+
+  const toggleExpand = (id) => {
+    setExpandedPromptIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const totalPages = Math.ceil(pagination.total / pagination.page_size)
 
   return (
@@ -144,18 +155,18 @@ function PromptLibrary() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Prompt Library</h1>
-          <p className="text-gray-600 mt-1">Manage and search your prompt templates</p>
+          <p className="text-gray-600 mt-1">Manage and search your prompt templates (grouped in unified blocks)</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => navigate('/builder')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
           >
             Create New Prompt
           </button>
           <button
             onClick={handleImport}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
           >
             Import
           </button>
@@ -177,14 +188,14 @@ function PromptLibrary() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name or description..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
           </div>
           <div className="sm:w-48">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Categories</option>
               {categories.map(category => (
@@ -196,14 +207,14 @@ function PromptLibrary() {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm font-medium"
           >
             Search
           </button>
         </form>
       </div>
 
-      {/* Prompts List */}
+      {/* Prompts List - Single Unified Block per Prompt */}
       {loading ? (
         <div className="text-center py-8 text-gray-500">Loading prompts...</div>
       ) : prompts.length === 0 ? (
@@ -213,66 +224,95 @@ function PromptLibrary() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {prompts.map(prompt => (
-            <div key={prompt.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 truncate flex-1">
-                  {prompt.name}
-                </h3>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded ml-2">
-                  v{prompt.version_number}
-                </span>
-              </div>
-              
-              {prompt.description && (
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {prompt.description}
-                </p>
-              )}
-
-              {prompt.category && (
-                <div className="mb-3">
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    {prompt.category}
+            <div key={prompt.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-bold text-gray-900 truncate flex-1">
+                    {prompt.title || prompt.name || 'Untitled Prompt'}
+                  </h3>
+                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 font-mono px-2 py-0.5 rounded ml-2">
+                    v{prompt.version_number}
                   </span>
                 </div>
-              )}
+                
+                {prompt.description && (
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                    {prompt.description}
+                  </p>
+                )}
 
-              {prompt.tags && (
-                <div className="mb-3 flex flex-wrap gap-1">
-                  {prompt.tags.split(',').map((tag, index) => (
-                    <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                      {tag.trim()}
+                {prompt.category && (
+                  <div className="mb-2">
+                    <span className="text-[11px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-medium">
+                      {prompt.category}
                     </span>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
 
-              <div className="text-xs text-gray-400 mb-3">
-                Updated: {new Date(prompt.updated_at).toLocaleDateString()}
+                <div className="bg-gray-50 border border-gray-100 rounded p-2 mb-3">
+                  <p className="text-xs text-gray-700 font-mono line-clamp-3 whitespace-pre-wrap">
+                    {prompt.content}
+                  </p>
+                </div>
+
+                {/* Variations Unified Inside Same Block */}
+                {prompt.variations && prompt.variations.length > 0 && (
+                  <div className="mb-3 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => toggleExpand(prompt.id)}
+                      className="w-full flex justify-between items-center text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2.5 py-1.5 rounded transition-colors"
+                    >
+                      <span>📦 Playground Variations ({prompt.variations.length})</span>
+                      <span>{expandedPromptIds.has(prompt.id) ? '▲ Hide' : '▼ Expand'}</span>
+                    </button>
+
+                    {expandedPromptIds.has(prompt.id) && (
+                      <div className="mt-2 space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {prompt.variations.map((v, i) => (
+                          <div key={v.id || i} className="bg-purple-50/50 border border-purple-100 rounded p-2 text-xs space-y-1">
+                            <div className="flex justify-between items-center font-semibold text-purple-900">
+                              <span className="truncate max-w-[180px]">{v.title || `Variation ${i+1}`}</span>
+                              <span className="text-[10px] text-purple-600 font-mono">
+                                Output
+                              </span>
+                            </div>
+                            <p className="text-gray-700 font-mono text-[11px] line-clamp-3 whitespace-pre-wrap bg-white p-1.5 rounded border border-purple-100">
+                              {v.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="text-[11px] text-gray-400 mb-3">
+                  Updated: {new Date(prompt.updated_at).toLocaleDateString()}
+                </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
                   onClick={() => navigate(`/prompts/${prompt.id}`)}
-                  className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100"
+                  className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded text-xs font-medium hover:bg-blue-100"
                 >
                   View
                 </button>
                 <button
                   onClick={() => handleViewVersions(prompt.id)}
-                  className="flex-1 px-3 py-1.5 bg-purple-50 text-purple-700 rounded text-sm hover:bg-purple-100"
+                  className="flex-1 px-3 py-1.5 bg-purple-50 text-purple-700 rounded text-xs font-medium hover:bg-purple-100"
                 >
                   History
                 </button>
                 <button
                   onClick={() => handleExport(prompt.id)}
-                  className="px-3 py-1.5 bg-green-50 text-green-700 rounded text-sm hover:bg-green-100"
+                  className="px-3 py-1.5 bg-green-50 text-green-700 rounded text-xs font-medium hover:bg-green-100"
                 >
                   Export
                 </button>
                 <button
                   onClick={() => handleDelete(prompt.id)}
-                  className="px-3 py-1.5 bg-red-50 text-red-700 rounded text-sm hover:bg-red-100"
+                  className="px-3 py-1.5 bg-red-50 text-red-700 rounded text-xs font-medium hover:bg-red-100"
                 >
                   Delete
                 </button>

@@ -33,7 +33,7 @@ describe('Welcome Page', () => {
       </BrowserRouter>
     )
     
-    expect(screen.getByText('Prompt Toolkit')).toBeInTheDocument()
+    expect(screen.getAllByText('Prompt Toolkit').length).toBeGreaterThan(0)
   })
 
   it('should render call-to-action buttons', () => {
@@ -95,8 +95,8 @@ describe('Welcome Page', () => {
       </BrowserRouter>
     )
     
-    const loginLink = screen.getByRole('link', { name: /Sign In/ })
-    expect(loginLink).toHaveAttribute('href', '/login')
+    const loginLinks = screen.getAllByRole('link', { name: /Sign In/ })
+    expect(loginLinks[0]).toHaveAttribute('href', '/login')
     
     const signupLinks = screen.getAllByRole('link', { name: /Create Free Account|Get Started/ })
     signupLinks.forEach(link => {

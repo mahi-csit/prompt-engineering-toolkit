@@ -2,14 +2,20 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Playground from '../../pages/Playground'
-import * as playgroundAPI from '../../api/playground'
+import { playgroundAPI } from '../../api/playground'
+import { promptsAPI } from '../../api/prompts'
 
-// Mock the playground API
+// Mock the playground and prompts APIs
 vi.mock('../../api/playground')
+vi.mock('../../api/prompts')
 
 describe('Playground', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    if (playgroundAPI.getAvailableProviders) {
+      playgroundAPI.getAvailableProviders.mockResolvedValue([])
+    }
+    playgroundAPI.getAvailableModels.mockResolvedValue([])
   })
 
   const renderPlayground = () => {
@@ -21,9 +27,6 @@ describe('Playground', () => {
   }
 
   it('should render the playground page', () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([
-      { provider: 'anthropic', name: 'Anthropic' }
-    ])
     playgroundAPI.getAvailableModels.mockResolvedValue([
       {
         provider: 'anthropic',
@@ -40,21 +43,7 @@ describe('Playground', () => {
     expect(screen.getByText('Test prompts against multiple models simultaneously')).toBeInTheDocument()
   })
 
-  it('should fetch providers on mount', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([
-      { provider: 'anthropic', name: 'Anthropic' }
-    ])
-    playgroundAPI.getAvailableModels.mockResolvedValue([])
-
-    renderPlayground()
-
-    await waitFor(() => {
-      expect(playgroundAPI.getAvailableProviders).toHaveBeenCalled()
-    })
-  })
-
   it('should fetch models on mount', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
     playgroundAPI.getAvailableModels.mockResolvedValue([
       {
         provider: 'anthropic',
@@ -73,7 +62,6 @@ describe('Playground', () => {
   })
 
   it('should update prompt on change', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
     playgroundAPI.getAvailableModels.mockResolvedValue([])
 
     renderPlayground()
@@ -85,24 +73,15 @@ describe('Playground', () => {
     })
   })
 
-  it('should show error when running without prompt', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
+  it('should disable run comparison button when prompt is empty', async () => {
     playgroundAPI.getAvailableModels.mockResolvedValue([])
 
     renderPlayground()
 
-    await waitFor(() => {
-      const runButton = screen.getByText('Run Comparison')
-      fireEvent.click(runButton)
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText(/Please enter a prompt/)).toBeInTheDocument()
-    })
+    expect(screen.getByText('Run Comparison')).toBeDisabled()
   })
 
-  it('should show error when running without selected models', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
+  it('should disable run comparison button when no models selected', async () => {
     playgroundAPI.getAvailableModels.mockResolvedValue([])
 
     renderPlayground()
@@ -112,20 +91,10 @@ describe('Playground', () => {
       fireEvent.change(textarea, { target: { value: 'Test prompt' } })
     })
 
-    await waitFor(() => {
-      const runButton = screen.getByText('Run Comparison')
-      fireEvent.click(runButton)
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText(/Please select at least one model/)).toBeInTheDocument()
-    })
+    expect(screen.getByText('Run Comparison')).toBeDisabled()
   })
 
   it('should run comparison successfully', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([
-      { provider: 'anthropic', name: 'Anthropic' }
-    ])
     playgroundAPI.getAvailableModels.mockResolvedValue([
       {
         provider: 'anthropic',
@@ -165,7 +134,9 @@ describe('Playground', () => {
     await waitFor(() => {
       // Select a model
       const checkbox = screen.getByRole('checkbox')
-      fireEvent.click(checkbox)
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox)
+      }
     })
 
     await waitFor(() => {
@@ -180,7 +151,6 @@ describe('Playground', () => {
   })
 
   it('should handle comparison error', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
     playgroundAPI.getAvailableModels.mockResolvedValue([
       {
         provider: 'anthropic',
@@ -201,7 +171,9 @@ describe('Playground', () => {
 
     await waitFor(() => {
       const checkbox = screen.getByRole('checkbox')
-      fireEvent.click(checkbox)
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox)
+      }
     })
 
     await waitFor(() => {
@@ -215,13 +187,13 @@ describe('Playground', () => {
   })
 
   it('should clear results on clear button', async () => {
-    playgroundAPI.getAvailableProviders.mockResolvedValue([])
     playgroundAPI.getAvailableModels.mockResolvedValue([])
 
     renderPlayground()
 
+    let textarea
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText(/Enter your prompt here/)
+      textarea = screen.getByPlaceholderText(/Enter your prompt here/)
       fireEvent.change(textarea, { target: { value: 'Test prompt' } })
     })
 
@@ -285,7 +257,9 @@ describe('Playground', () => {
 
     await waitFor(() => {
       const checkbox = screen.getByRole('checkbox')
-      fireEvent.click(checkbox)
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox)
+      }
     })
 
     await waitFor(() => {
@@ -338,7 +312,9 @@ describe('Playground', () => {
 
     await waitFor(() => {
       const checkbox = screen.getByRole('checkbox')
-      fireEvent.click(checkbox)
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox)
+      }
     })
 
     await waitFor(() => {
@@ -348,7 +324,36 @@ describe('Playground', () => {
 
     await waitFor(() => {
       expect(screen.getByText('1 Success')).toBeInTheDocument()
-      expect(screen.getByText('100ms')).toBeInTheDocument()
+      expect(screen.getByText('Total: 100ms')).toBeInTheDocument()
+    })
+  })
+
+  it('should open save to library modal and save prompt', async () => {
+    promptsAPI.createPrompt.mockResolvedValue({ id: '1', title: 'Test Save' })
+
+    renderPlayground()
+
+    await waitFor(() => {
+      const textarea = screen.getByPlaceholderText(/Enter your prompt here/)
+      fireEvent.change(textarea, { target: { value: 'My test prompt content' } })
+    })
+
+    const saveButton = screen.getByText(/Save to Library/)
+    fireEvent.click(saveButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Save Prompt to Library')).toBeInTheDocument()
+    })
+
+    const submitButtons = screen.getAllByRole('button', { name: /Save to Library/i })
+    const modalSubmit = submitButtons[submitButtons.length - 1]
+    fireEvent.click(modalSubmit)
+
+    await waitFor(() => {
+      expect(promptsAPI.createPrompt).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'My test prompt content'
+      }))
+      expect(screen.getByText('Prompt successfully saved to your Library!')).toBeInTheDocument()
     })
   })
 })

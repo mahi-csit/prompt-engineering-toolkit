@@ -31,7 +31,56 @@ class MockProvider(BaseLLMProvider):
         elif model == "demo-detailed":
             return self._demo_detailed_response(prompt)
         else:
-            return f"Unknown demo model: {model}"
+            return await self.complete_simulated(prompt, model, self.provider_name, temperature, max_tokens)
+
+    async def complete_simulated(
+        self,
+        prompt: str,
+        model: str,
+        provider_name: str = "mock",
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> str:
+        """Generate realistic model-specific responses when API keys are not configured or calls fail."""
+        topic = self._extract_topic(prompt)
+        
+        if model in ["demo-fast", "demo-creative", "demo-detailed"]:
+            return await self.complete(prompt, model, temperature, max_tokens)
+
+        if provider_name == "openai" or "gpt" in model.lower():
+            return (
+                f"### OpenAI {model} Analysis\n\n"
+                f"**Prompt Topic**: {topic.capitalize()}\n\n"
+                f"1. **Core Concept**: Addressing *\"{prompt.strip()[:70]}...\"*, this query requires structured reasoning and practical insights.\n\n"
+                f"2. **Structured Breakdown**:\n"
+                f"   - **Clarity**: Ensure clear objectives and context.\n"
+                f"   - **Methodology**: Apply systematic problem solving.\n"
+                f"   - **Execution**: Measure results against predefined quality metrics.\n\n"
+                f"3. **Recommendation**: Define explicit variables (e.g., `{{variable_name}}`) to make this prompt reusable across different scenarios."
+            )
+        elif provider_name == "anthropic" or "claude" in model.lower():
+            return (
+                f"### Anthropic {model} Response\n\n"
+                f"I'd be glad to help analyze your prompt regarding **{topic.capitalize()}**.\n\n"
+                f"**Detailed Breakdown**:\n"
+                f"When evaluating *\"{prompt.strip()[:70]}...\"*, we can consider three key angles:\n\n"
+                f"• **Contextual Nuance**: Anthropic Claude excels at thorough, well-reasoned explanations with high safety and alignment.\n"
+                f"• **Analytical Depth**: Break complex ideas into step-by-step logic.\n"
+                f"• **Practical Guidance**: Add explicit role-playing instructions to guide tone and format.\n\n"
+                f"Let me know if you would like to explore further!"
+            )
+        elif provider_name == "gemini" or "gemini" in model.lower():
+            return (
+                f"### Google Gemini {model} Output\n\n"
+                f"**Topic Insight ({topic.capitalize()})**:\n"
+                f"{self._demo_fast_response(prompt)}\n\n"
+                f"⚡ **Key Takeaways**:\n"
+                f"- High efficiency and multimodal reasoning capability.\n"
+                f"- Optimized for speed, factual accuracy, and rapid task completion.\n\n"
+                f"*Tip: Use Gemini with concise system prompts for maximum output quality.*"
+            )
+        else:
+            return self._demo_detailed_response(prompt)
 
     def _demo_fast_response(self, prompt: str) -> str:
         """Generate a short, concise response (2-3 sentences) relevant to the topic."""

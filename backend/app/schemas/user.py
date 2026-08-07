@@ -3,8 +3,8 @@ Pydantic schemas for User authentication and management.
 IDs are strings (MongoDB ObjectId serialised as str).
 """
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, EmailStr, field_validator
+from typing import Any, Optional
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 
 class UserCreate(BaseModel):
@@ -32,8 +32,17 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    username_or_email: str = ""
     password: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_username_or_email(cls, values: Any) -> Any:
+        if isinstance(values, dict):
+            identifier = values.get("username_or_email") or values.get("email") or values.get("username")
+            if identifier:
+                values["username_or_email"] = str(identifier).strip()
+        return values
 
 
 class UserResponse(BaseModel):

@@ -9,12 +9,14 @@ from pydantic import Field
 
 class Prompt(Document):
     user_id: Optional[PydanticObjectId] = None
+    parent_id: Optional[PydanticObjectId] = None
     title: str
     category: Optional[str] = "General"
     content: str
     description: Optional[str] = None
     tags: Optional[str] = None
     variables: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    variations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     is_favorite: bool = False
     version_number: int = 1
     created_at: datetime = Field(default_factory=datetime.utcnow)

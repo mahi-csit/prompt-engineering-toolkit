@@ -69,7 +69,7 @@ def get_available_providers() -> list[dict]:
             "provider": "gemini",
             "display_name": "Google Gemini",
             "available": True,
-            "models": ["gemini-3-flash-preview"],
+            "models": ["gemini-2.0-flash"],
         })
     
     # Anthropic Claude
@@ -99,7 +99,7 @@ def get_all_models() -> list[dict]:
         {"provider": "openai", "model": "gpt-4-turbo-preview", "display_name": "GPT-4 Turbo", "description": "Latest GPT-4 with improved performance.", "max_tokens": 128000},
         
         # Google Gemini models
-        {"provider": "gemini", "model": "gemini-3-flash-preview", "display_name": "Gemini 3 Flash", "description": "Fast and capable multimodal model.", "max_tokens": 1000000},
+        {"provider": "gemini", "model": "gemini-2.0-flash", "display_name": "Gemini 2.0 Flash", "description": "Fast and capable multimodal model.", "max_tokens": 1000000},
         
         # Anthropic Claude models
         {"provider": "anthropic", "model": "claude-3-5-sonnet-20241022", "display_name": "Claude 3.5 Sonnet", "description": "Latest Claude with improved reasoning.", "max_tokens": 200000},

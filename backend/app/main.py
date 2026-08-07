@@ -21,6 +21,12 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Enterprise Prompt Engineering Toolkit — %s", settings.ENVIRONMENT)
     await init_db()
     logger.info("MongoDB connected — database: %s", settings.MONGODB_DB_NAME)
+    try:
+        from .services.auth_service import AuthService
+        await AuthService.seed_demo_users()
+        logger.info("Demo users seeded successfully")
+    except Exception as e:
+        logger.warning("Error seeding demo users: %s", e)
     yield
     await close_db()
     logger.info("MongoDB connection closed")
@@ -46,6 +52,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
+@app.get("/", tags=["root"])
+async def root():
+    return {
+        "message": "Welcome to Enterprise Prompt Engineering Toolkit API",
+        "docs": "/api/docs",
+        "health": "/health",
+        "version": "1.0.0",
+        "frontend_url": "http://localhost:5173",
+    }
 
 
 @app.get("/health", tags=["health"])

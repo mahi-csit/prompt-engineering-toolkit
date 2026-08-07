@@ -113,4 +113,14 @@ export const promptsAPI = {
     const response = await apiClient.post('/api/prompts/import', importData)
     return response.data
   },
+
+  /**
+   * AI Generate a prompt template from topic
+   * @param {Object} data - { topic: string, category?: string }
+   * @returns {Promise<Object>}
+   */
+  async generatePrompt(data) {
+    const response = await apiClient.post('/api/prompts/generate', data)
+    return response.data
+  },
 }
