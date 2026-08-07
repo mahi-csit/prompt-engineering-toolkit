@@ -42,6 +42,15 @@ def get_provider(provider_name: str) -> BaseLLMProvider:
     return _providers[provider_name]
 
 
+def clear_cached_provider(provider_name: Optional[str] = None):
+    """Clear cached provider instance so new API keys take effect immediately."""
+    if provider_name and provider_name in _providers:
+        del _providers[provider_name]
+    elif not provider_name:
+        _providers.clear()
+
+
+
 def get_available_providers() -> list[dict]:
     """Return list of providers with their availability status."""
     providers = []

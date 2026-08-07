@@ -77,10 +77,12 @@ async def health_check():
 
 
 # Register all routers
-from .api import auth, prompts, playground, evaluations, analytics  # noqa: E402
+from .api import auth, prompts, playground, evaluations, analytics, settings as settings_router  # noqa: E402
 
-app.include_router(auth.router,        prefix="/api/auth",        tags=["auth"])
-app.include_router(prompts.router,     prefix="/api/prompts",     tags=["prompts"])
-app.include_router(playground.router,  prefix="/api/playground",  tags=["playground"])
-app.include_router(evaluations.router, prefix="/api/evaluations", tags=["evaluations"])
-app.include_router(analytics.router,   prefix="/api/analytics",   tags=["analytics"])
+app.include_router(auth.router,            prefix="/api/auth",        tags=["auth"])
+app.include_router(prompts.router,         prefix="/api/prompts",     tags=["prompts"])
+app.include_router(playground.router,      prefix="/api/playground",  tags=["playground"])
+app.include_router(evaluations.router,     prefix="/api/evaluations", tags=["evaluations"])
+app.include_router(analytics.router,       prefix="/api/analytics",   tags=["analytics"])
+app.include_router(settings_router.router, prefix="/api/settings",    tags=["settings"])
+

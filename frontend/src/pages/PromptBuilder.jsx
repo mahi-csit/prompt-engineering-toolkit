@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { promptsAPI } from '../api/prompts'
+import { settingsAPI } from '../api/settings'
 import PromptPreview from '../components/PromptPreview'
 
 function PromptBuilder() {
@@ -19,6 +20,50 @@ function PromptBuilder() {
   // AI Prompt Generator state
   const [generateTopic, setGenerateTopic] = useState('')
   const [generatingPrompt, setGeneratingPrompt] = useState(false)
+
+  // API Key State
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '')
+  const [showApiKey, setShowApiKey] = useState(false)
+  const [keySavedMsg, setKeySavedMsg] = useState('')
+  const [savingKey, setSavingKey] = useState(false)
+
+  const handleSaveApiKey = async (e) => {
+    e?.preventDefault()
+    const trimmedKey = apiKey.trim()
+    setSavingKey(true)
+    try {
+      if (trimmedKey) {
+        localStorage.setItem('gemini_api_key', trimmedKey)
+        await settingsAPI.updateApiKey({ provider: 'gemini', api_key: trimmedKey })
+        setKeySavedMsg('✓ GEMINI_API_KEY updated in .env file & backend runtime!')
+      } else {
+        localStorage.removeItem('gemini_api_key')
+        await settingsAPI.updateApiKey({ provider: 'gemini', api_key: '' })
+        setKeySavedMsg('ℹ️ GEMINI_API_KEY cleared in .env file.')
+      }
+    } catch (err) {
+      console.error('Failed to update .env:', err)
+      setKeySavedMsg(trimmedKey ? '✓ Key saved locally (backend sync optional)' : 'ℹ️ Key cleared locally')
+    } finally {
+      setSavingKey(false)
+      setTimeout(() => setKeySavedMsg(''), 4000)
+    }
+  }
+
+  const handleClearApiKey = async () => {
+    setApiKey('')
+    localStorage.removeItem('gemini_api_key')
+    setSavingKey(true)
+    try {
+      await settingsAPI.updateApiKey({ provider: 'gemini', api_key: '' })
+      setKeySavedMsg('ℹ️ GEMINI_API_KEY cleared in .env file.')
+    } catch (err) {
+      setKeySavedMsg('ℹ️ Key cleared locally.')
+    } finally {
+      setSavingKey(false)
+      setTimeout(() => setKeySavedMsg(''), 4000)
+    }
+  }
 
   useEffect(() => {
     if (location.state?.content) {
@@ -128,6 +173,82 @@ function PromptBuilder() {
           {error}
         </div>
       )}
+
+      {/* Gemini API Key Settings Card */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔑</span>
+            <h2 className="text-base font-semibold text-amber-950">
+              Gemini API Key Configuration
+            </h2>
+            {apiKey ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+                ✓ Key Saved Locally
+              </span>
+            ) : (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
+                Using Server Environment Key
+              </span>
+            )}
+          </div>
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline flex items-center gap-1"
+          >
+            Get Key from Google AI Studio ↗
+          </a>
+        </div>
+        <p className="text-xs text-amber-800 mb-3">
+          Enter your Google AI Studio API key here to change or override the API key used for prompt building and execution.
+        </p>
+
+        <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-2 items-stretch">
+          <div className="relative flex-1">
+            <input
+              type={showApiKey ? "text" : "password"}
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="AIzaSy... (Enter your Gemini API key from Google AI Studio)"
+              className="w-full px-3 py-2 pr-10 border border-amber-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+            />
+            <button
+              type="button"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xs px-1.5 py-1 rounded"
+              title={showApiKey ? "Hide Key" : "Show Key"}
+            >
+              {showApiKey ? '🙈' : '👁️'}
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={savingKey}
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              {savingKey ? 'Updating .env...' : 'Save Key'}
+            </button>
+            {apiKey && (
+              <button
+                type="button"
+                onClick={handleClearApiKey}
+                disabled={savingKey}
+                className="px-3 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </form>
+        {keySavedMsg && (
+          <p className="text-xs font-medium text-emerald-700 mt-2">
+            {keySavedMsg}
+          </p>
+        )}
+      </div>
 
       {/* AI Prompt Generator Widget */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 shadow-sm">
